@@ -16,12 +16,11 @@ const useOnClickOutside = (
         event.clientX > rect.right ||
         event.clientY < rect.top ||
         event.clientY > rect.bottom
-      ) {
+      )
         execute();
-      }
     };
-    document.addEventListener("click", listener);
 
+    document.addEventListener("click", listener);
     return () => document.removeEventListener("click", listener);
   }, [execute, referecne]);
 };

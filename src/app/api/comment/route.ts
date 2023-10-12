@@ -1,5 +1,5 @@
 import { getAuthSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/database/prisma";
 import { CommentValidator } from "@/lib/validators/comment";
 
 export async function POST(req: Request) {
@@ -12,6 +12,9 @@ export async function POST(req: Request) {
 
     const res = await prisma.comment.create({
       data: { ...commentData, authorId: session.user.id },
+      include: {
+        author: { select: { id: true, username: true, image: true } },
+      },
     });
 
     return new Response(JSON.stringify(res));

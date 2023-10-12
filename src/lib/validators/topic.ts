@@ -1,7 +1,7 @@
 import { NAME_REGEX } from "@/config";
 import { z } from "zod";
 
-export const TopicValidator = z.object({
+export const TopicCreationRequestValidator = z.object({
   name: z
     .string()
     .min(3)
@@ -10,13 +10,19 @@ export const TopicValidator = z.object({
       NAME_REGEX,
       "Cannot include space or any special character except _",
     ),
+  description: z.string().max(1024).optional(),
 });
 
-export const TopicSubscriptionValidator = z.object({
+export const TopicSubscriptionRequestValidator = z.object({
   topicName: z.string(),
 });
 
-export type CreateTopicPayload = z.infer<typeof TopicValidator>;
+export const TopicDescriptionChangeValidator = z.object({
+  description: z.string().max(1024).nullable(),
+});
+
+export type CreateTopicPayload = z.infer<typeof TopicCreationRequestValidator>;
 export type SubscribeToTopicPayload = z.infer<
-  typeof TopicSubscriptionValidator
+  typeof TopicSubscriptionRequestValidator
 >;
+export type TopicDescription = z.infer<typeof TopicDescriptionChangeValidator>;

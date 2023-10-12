@@ -1,6 +1,7 @@
 import { getAuthSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { PostValidator } from "@/lib/validators/post";
+import prisma from "@/lib/database/prisma";
+import { PostCreationValidator } from "@/lib/validators/post";
+import { nanoid } from "nanoid";
 import { z } from "zod";
 
 export async function POST(req: Request) {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await req.json();
-    const { title, topicName, content } = PostValidator.parse(body);
+    const { title, topicName, content } = PostCreationValidator.parse(body);
 
     const userHasSubscription = await prisma.subscription.findUnique({
       where: {
@@ -21,8 +22,15 @@ export async function POST(req: Request) {
         status: 405,
       });
 
+    const id = title
+      .toLowerCase()
+      .replace(/ /g, "-")
+      .replace(/[^\w-]+/g, "")
+      .concat("-", nanoid(8));
+
     await prisma.post.create({
       data: {
+        id,
         title: title,
         authorId: session.user?.id,
         content,

@@ -15,8 +15,12 @@ export async function uploadToCloudinary(file: File) {
       process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_URL!,
       formData,
     );
+    console.log(data);
 
-    return { success: 1, file: { url: data.url } };
+    return {
+      success: 1,
+      file: { url: data.url, width: data.width, height: data.height },
+    };
   } catch (error) {
     console.error(error);
     return { success: 0 };

@@ -1,9 +1,9 @@
+import prisma from "@/lib/database/prisma";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { nanoid } from "nanoid";
 import { AuthOptions, getServerSession } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "./prisma";
-import { nanoid } from "nanoid";
 
 export const authOpions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -30,7 +30,7 @@ export const authOpions: AuthOptions = {
       });
       let username = user?.username;
 
-      if (!user?.username) username = nanoid(8);
+      if (!user?.username || user.username.length > 8) username = nanoid(8);
       await prisma.user.update({
         where: { id: token.sub },
         data: { username },

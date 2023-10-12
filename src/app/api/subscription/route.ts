@@ -1,6 +1,7 @@
 import { getAuthSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { TopicSubscriptionValidator } from "@/lib/validators/topic";
+import prisma from "@/lib/database/prisma";
+import { getSubscriptions } from "@/lib/database/utils";
+import { TopicSubscriptionRequestValidator } from "@/lib/validators/topic";
 import { z } from "zod";
 
 export async function POST(req: Request) {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const body = await req.json();
-    const { topicName } = TopicSubscriptionValidator.parse(body);
+    const { topicName } = TopicSubscriptionRequestValidator.parse(body);
 
     const topic = await prisma.topic.findUnique({ where: { name: topicName } });
     if (!topic) return new Response("Topic does not exist", { status: 422 });
@@ -38,4 +39,12 @@ export async function POST(req: Request) {
       return new Response(error.message, { status: 422 });
     return new Response("Something went wrong", { status: 500 });
   }
+}
+
+export async function GET() {
+  const session = await getAuthSession();
+  const userId = session?.user.id;
+  if (!userId) return new Response("Unauthorized", { status: 401 });
+
+  return new Response(JSON.stringify(await getSubscriptions(userId)));
 }

@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
-  url      = env("COCKROACHDB_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
 }
 
 enum VoteType {
@@ -21,12 +22,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -43,30 +44,46 @@ model Session {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String?        @unique
-  emailVerified DateTime?
-  votes         Vote[]
-  username      String         @default(cuid())
-  image         String?
-  createdTopics Topic[]        @relation("CreatedBy")
-  subscriptions Subscription[]
-  accounts      Account[]
-  sessions      Session[]
-  Post          Post[]
-  Comment       Comment[]
-  CommentVote   CommentVote[]
+  id                     String         @id @default(cuid())
+  name                   String?
+  email                  String?        @unique
+  bio                    String?        @db.VarChar(1024)
+  emailVerified          DateTime?
+  username               String?        @unique
+  image                  String?
+  usernameHasBeenChanged Boolean        @default(false)
+  postVotes              PostVote[]
+  topics                 Topic[]        @relation("CreatedBy")
+  subscriptions          Subscription[]
+  accounts               Account[]
+  sessions               Session[]
+  posts                  Post[]
+  comments               Comment[]
+  commentVotes           CommentVote[]
+  followedBy             Follow[]       @relation("FollowedBy")
+  followingTo            Follow[]       @relation("FollowingTo")
+
+  @@index([username])
+}
+
+model Follow {
+  followedBy   User   @relation("FollowedBy", fields: [followedById], references: [id])
+  followedById String
+  followingTo  User   @relation("FollowingTo", fields: [follwingToId], references: [id])
+  follwingToId String
+
+  @@unique([followedById, follwingToId])
 }
 
 model Topic {
-  name      String   @id
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
+  name        String   @id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?  @db.Text
+  posts       Post[]
 
   creatorId   String
-  Creator     User           @relation("CreatedBy", fields: [creatorId], references: [id])
+  creator     User           @relation("CreatedBy", fields: [creatorId], references: [id])
   subscribers Subscription[]
 }
 
@@ -80,36 +97,47 @@ model Subscription {
 }
 
 model Post {
-  id        String    @id @default(cuid())
+  id        String     @id @default(cuid())
   title     String
   content   Json?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  author    User      @relation(fields: [authorId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  rating    Int        @default(0)
+  author    User       @relation(fields: [authorId], references: [id])
   authorId  String
-  topic     Topic     @relation(fields: [topicId], references: [name])
+  topic     Topic      @relation(fields: [topicId], references: [name])
   topicId   String
   comments  Comment[]
-  votes     Vote[]
+  postvotes PostVote[]
+
+  @@index(createdAt)
+  @@index(rating)
+  @@index(authorId)
+  @@index(topicId)
 }
 
 model Comment {
   id        String   @id @default(cuid())
-  text      String
+  text      String   @db.VarChar(1024)
   createdAt DateTime @default(now())
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    String
+  rating    Int      @default(0)
 
   replyToId String?
   replyTo   Comment?  @relation("ReplyTo", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies   Comment[] @relation("ReplyTo")
 
-  votes CommentVote[]
+  commentVotes CommentVote[]
+
+  @@index(rating)
+  @@index(postId)
+  @@index(replyToId)
 }
 
-model Vote {
+model PostVote {
   user   User     @relation(fields: [userId], references: [id])
   userId String
   post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)

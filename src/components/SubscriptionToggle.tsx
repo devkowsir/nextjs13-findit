@@ -1,22 +1,21 @@
 "use client";
 
-import axios, { AxiosError } from "axios";
-import { Button, buttonVariants } from "./ui/button";
 import { toast } from "@/hooks/useToast";
-import Link from "next/link";
-import { subscribe } from "diagnostics_channel";
-import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { startTransition } from "react";
+import { Button, buttonVariants } from "./ui/button";
 
 interface SubscriptionToggleProps {
   topicName: string;
-  subscribed: boolean;
+  isSubscribed: boolean;
 }
 
 const SubscriptionToggle: React.FC<SubscriptionToggleProps> = ({
   topicName,
-  subscribed,
+  isSubscribed,
 }) => {
   const router = useRouter();
 
@@ -65,33 +64,20 @@ const SubscriptionToggle: React.FC<SubscriptionToggleProps> = ({
         router.refresh();
       });
       toast({
-        title: `${data.split(" ")[0]}!`,
-        description: data,
+        title: data,
       });
     },
   });
 
   return (
-    <>
-      <Button
-        onClick={() => toggleSubscriptionHandler()}
-        disabled={isLoading}
-        className="w-full"
-      >
-        {subscribed ? "Leave Community" : "Join Community"}
-      </Button>
-      {subscribed ? (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => {
-            router.push(`${topicName}/submit`);
-          }}
-        >
-          Create Post
-        </Button>
-      ) : null}
-    </>
+    <Button
+      onClick={() => toggleSubscriptionHandler()}
+      disabled={isLoading}
+      className="w-full"
+      variant={"outline"}
+    >
+      {isSubscribed ? "Unsubscribe" : "Subscribe"}
+    </Button>
   );
 };
 

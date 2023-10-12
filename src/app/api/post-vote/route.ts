@@ -1,44 +1,67 @@
 import { getAuthSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/database/prisma";
 import { VoteValidator } from "@/lib/validators/vote";
+import { VoteType } from "@prisma/client";
 import { ZodError } from "zod";
 
 export async function POST(req: Request) {
-  let votesAmount;
-  let userVote;
   try {
+    let userVote: VoteType | null;
+    let post: { rating: number };
     const session = await getAuthSession();
-    if (!session?.user.id) return new Response("Unauthorized", { status: 401 });
+    const userId = session?.user.id;
+    if (!userId) return new Response("Unauthorized", { status: 401 });
 
     const body = await req.json();
     const { type, id: postId } = VoteValidator.parse(body);
 
-    const voteExists = await prisma.vote.findUnique({
-      where: { userId_postId: { userId: session.user.id, postId } },
+    const voteExists = await prisma.postVote.findUnique({
+      where: { userId_postId: { userId: userId, postId } },
+      select: { type: true },
     });
 
-    if (voteExists?.type === type) {
-      await prisma.vote.delete({
-        where: { userId_postId: { postId, userId: session.user.id } },
-      });
+    if (!voteExists) {
+      [post] = await prisma.$transaction([
+        prisma.post.update({
+          where: { id: postId },
+          data: { rating: type === "UP" ? { increment: 1 } : { decrement: 1 } },
+          select: { rating: true },
+        }),
+        prisma.postVote.create({
+          data: { type, postId, userId: userId },
+          select: { type: true },
+        }),
+      ]);
+      userVote = type;
+    } else if (voteExists?.type === type) {
+      [post] = await prisma.$transaction([
+        prisma.post.update({
+          where: { id: postId },
+          data: { rating: type === "UP" ? { decrement: 1 } : { increment: 1 } },
+          select: { rating: true },
+        }),
+        prisma.postVote.delete({
+          where: { userId_postId: { userId: userId, postId } },
+          select: { type: true },
+        }),
+      ]);
       userVote = null;
     } else {
-      userVote = (
-        await prisma.vote.upsert({
-          where: { userId_postId: { postId, userId: session.user.id } },
-          create: { type, postId, userId: session.user.id },
-          update: { type },
+      [post] = await prisma.$transaction([
+        prisma.post.update({
+          where: { id: postId },
+          data: { rating: type === "UP" ? { increment: 2 } : { decrement: 2 } },
+          select: { rating: true },
+        }),
+        prisma.postVote.update({
+          where: { userId_postId: { userId, postId } },
+          data: { type },
           select: { type: true },
-        })
-      ).type;
+        }),
+      ]);
+      userVote = type;
     }
-    votesAmount = (
-      await prisma.vote.findMany({
-        where: { postId },
-        select: { type: true },
-      })
-    ).reduce((acc, curr) => (curr.type === "UP" ? acc + 1 : acc - 1), 0);
-    return new Response(JSON.stringify({ userVote, votesAmount }));
+    return new Response(JSON.stringify({ userVote, votesAmount: post.rating }));
   } catch (err) {
     console.error(err);
     if (err instanceof ZodError)

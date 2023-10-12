@@ -1,23 +1,34 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { CreateTopicPayload } from "@/lib/validators/topic";
 import { toast } from "@/hooks/useToast";
+import {
+  CreateTopicPayload,
+  TopicCreationRequestValidator,
+} from "@/lib/validators/topic";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
-import { NAME_REGEX } from "@/config";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import TextareaAutosize from "react-textarea-autosize";
 
-const CreateCommunity = () => {
-  const [name, setName] = useState("");
+const CreateTopic = () => {
   const router = useRouter();
-  const validName = NAME_REGEX.test(name);
 
-  const { mutate: createCommunity, isLoading } = useMutation({
-    mutationFn: async () => {
-      const payload: CreateTopicPayload = { name };
+  const {
+    formState: { errors, isValid, isLoading },
+    register,
+    handleSubmit,
+  } = useForm({
+    defaultValues: { name: "", description: "" },
+    resolver: zodResolver(TopicCreationRequestValidator),
+  });
+
+  const { mutate: createTopic } = useMutation({
+    mutationFn: async (payload: CreateTopicPayload) => {
       const { data } = await axios.post("/api/topic", payload);
       return data as string;
     },
@@ -60,15 +71,25 @@ const CreateCommunity = () => {
     },
   });
 
+  useEffect(() => {
+    for (const [_, value] of Object.entries(errors)) {
+      toast({ description: (value as { message: string }).message });
+    }
+  }, [errors]);
+
+  const onSubmit = (payload: CreateTopicPayload) => {
+    createTopic(payload);
+  };
+
   return (
-    <main className="container">
+    <main className="container max-w-xl">
       <div className="rounded-lg bg-white px-4 py-6 shadow">
         <h1 className="text-2xl font-bold text-slate-700 md:text-3xl">
           Create Community
         </h1>
         <div className="my-4 h-[1px] w-full bg-slate-700" />
 
-        <div className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <h2 className="text-2xl text-slate-700">Name</h2>
             <p className="text-sm text-slate-600">
@@ -83,12 +104,23 @@ const CreateCommunity = () => {
               </p>
               <input
                 type="text"
-                name="name"
                 className="w-full rounded-md border px-4 py-2 pl-6 text-slate-800"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...register("name")}
               />
             </div>
+          </div>
+
+          <div>
+            <h2 className="text-2xl text-slate-700">Description</h2>
+            <p className="text-sm text-slate-600">
+              {`Add a optional description which is highly appreciated. You can include 
+              the scope of this topic, rules to be followed etc.`}
+            </p>
+
+            <TextareaAutosize
+              className="my-2 w-full rounded-md border px-3 py-2 text-slate-800"
+              {...register("description")}
+            />
           </div>
 
           <div className="flex justify-end gap-4">
@@ -100,17 +132,17 @@ const CreateCommunity = () => {
               Cancel
             </Button>
             <Button
-              className="disabled:contrast-[90]"
-              disabled={isLoading || !validName}
-              onClick={() => createCommunity()}
+              className="disabled:contrast-50"
+              disabled={isLoading || !isValid}
+              type="submit"
             >
-              Create Community
+              Create Topic
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </main>
   );
 };
 
-export default CreateCommunity;
+export default CreateTopic;
