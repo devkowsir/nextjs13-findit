@@ -74,7 +74,7 @@ const SubscriptionToggle: React.FC<SubscriptionToggleProps> = ({
       onClick={() => toggleSubscriptionHandler()}
       disabled={isLoading}
       className="w-full"
-      variant={"outline"}
+      variant={isSubscribed ? "outline" : "default"}
     >
       {isSubscribed ? "Unsubscribe" : "Subscribe"}
     </Button>

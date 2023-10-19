@@ -1,16 +1,15 @@
 "use client";
 
 import Post from "@/components/feed/Post";
-import { random } from "@/lib/utils";
 import { ExtendedPost } from "@/types/db";
 import { useIntersection } from "@mantine/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { SkeletonText } from "../Skeleton";
 import Sort from "../Sort";
 import BackButton from "./BackButton";
 import PostFallBack from "./PostFallback";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface PostFeedProps {
   initialPosts: ExtendedPost[];
@@ -69,34 +68,30 @@ const PostFeed: React.FC<PostFeedProps> = ({
   const posts = data?.pages?.flatMap((page) => page) ?? initialPosts;
 
   return (
-    <div className="pb-4">
-      <div className="flex items-center">
-        <BackButton />
-        <Sort sortMode={sortMode} setSortMode={setSortMode} />
-      </div>
-      {posts.length > 0 ? (
-        <ul className="col-span-2 flex flex-col space-y-6">
-          {posts.map((post, index) => (
-            <Post
-              ref={index === posts.length - 1 ? ref : null}
-              key={post.id}
-              post={post}
-            />
-          ))}
-          {isFetchingNextPage && (
-            <>
-              <PostFallBack />
-              <PostFallBack />
-              <PostFallBack />
-            </>
-          )}
-        </ul>
-      ) : (
-        <div className="text-center text-lg font-semibold capitalize text-slate-700">
-          {sortMode} Posts Not Found.
+    <ErrorBoundary fallback={<div>Something Went Wrong</div>}>
+      <div className="pb-8">
+        <div className="flex items-center">
+          <BackButton />
+          <Sort sortMode={sortMode} setSortMode={setSortMode} />
         </div>
-      )}
-    </div>
+        {posts.length > 0 ? (
+          <ul className="col-span-2 flex flex-col space-y-6">
+            {posts.map((post, index) => (
+              <Post
+                ref={index === posts.length - 1 ? ref : null}
+                key={post.id}
+                post={post}
+              />
+            ))}
+            {isFetchingNextPage && <PostFallBack />}
+          </ul>
+        ) : (
+          <div className="text-center text-lg font-semibold capitalize text-slate-700">
+            {sortMode} Posts Not Found.
+          </div>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 

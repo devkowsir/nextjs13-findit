@@ -29,7 +29,7 @@ const Layout = async ({ params: { username } }: LayoutProps) => {
         {userProfile.bio ? (
           <p className="text-slate-700">{userProfile.bio}</p>
         ) : null}
-        <div className="mt-4 divide-y border-b border-t text-sm text-slate-600 [&>*]:py-0.5">
+        <div className="my-4 divide-y border-b border-t text-sm text-slate-600 [&>*]:py-0.5">
           <div className="flex items-center justify-between">
             <span>Followed By</span>
             <span>{numberFormatter.format(userProfile.counts.followedBy)}</span>
@@ -40,7 +40,7 @@ const Layout = async ({ params: { username } }: LayoutProps) => {
           </div>
         </div>
         {selfProfile ? (
-          <div className={cn(buttonVariants(), "mt-4 w-full")}>
+          <div className={cn(buttonVariants(), "w-full")}>
             <Settings userId={userProfile.id} />
           </div>
         ) : (

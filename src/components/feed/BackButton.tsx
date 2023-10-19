@@ -15,7 +15,7 @@ const BackButton = () => {
     <Button
       onClick={() => router.push("/")}
       variant={"outline"}
-      size={"xs"}
+      size={"sm"}
       className="mb-4 flex items-center gap-2 text-slate-700"
     >
       <ChevronLeft size={20} />
