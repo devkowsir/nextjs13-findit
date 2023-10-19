@@ -4,8 +4,22 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
+export interface Block {
+  id: string;
+  type: string;
+  data: any;
+}
+
+export interface Content {
+  time: number;
+  blocks: Block[];
+  version: string;
+}
+
 // prettier-ignore
-type _Post = Pick<Post, "id" | "title" | "content" | "createdAt" | "rating">;
+type _Post = Pick<Post, "id" | "title"| "createdAt" | "rating"> & {
+  content: Content
+};
 // prettier-ignore
 type _Comment = Pick<Comment, "id" | "text" | "createdAt" | "replyToId"  | "rating">;
 type _CommentVote = Pick<CommentVote, "type" | "userId">;

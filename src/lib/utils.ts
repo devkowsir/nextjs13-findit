@@ -54,3 +54,6 @@ export function formatTimeToNow(date: Date): string {
     },
   });
 }
+
+export const random = (start: number, end: number) =>
+  start + Math.round((Math.random() * (end - start)) % (end - start));

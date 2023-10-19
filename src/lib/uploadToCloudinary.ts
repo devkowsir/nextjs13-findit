@@ -15,14 +15,18 @@ export async function uploadToCloudinary(file: File) {
       process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_URL!,
       formData,
     );
-    console.log(data);
 
     return {
       success: 1,
-      file: { url: data.url, width: data.width, height: data.height },
+      file: {
+        url: data.url as string,
+        public_id: data.public_id as string,
+        width: data.width as number,
+        height: data.height as number,
+      },
     };
   } catch (error) {
     console.error(error);
-    return { success: 0 };
+    return { success: 0, file: null };
   }
 }

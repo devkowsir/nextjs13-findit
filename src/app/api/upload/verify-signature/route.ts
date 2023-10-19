@@ -16,7 +16,6 @@ export async function POST(req: Request) {
 
   if (expectedSignature === signature) {
     // safe to write to database
-    console.log({ public_id });
     // write to database
   }
 }

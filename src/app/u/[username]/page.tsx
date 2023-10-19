@@ -1,9 +1,12 @@
 import FollowToggle from "@/components/FollowToggle";
 import { ContainerLayout, LeftLayout, RightLayout } from "@/components/Layouts";
+import Settings from "@/components/dialogs/Settings";
 import PostFeed from "@/components/feed/PostFeed";
+import { buttonVariants } from "@/components/ui/button";
 import { numberFormatter } from "@/config";
 import { getAuthSession } from "@/lib/auth";
 import { getUserProfile } from "@/lib/database/utils";
+import { cn } from "@/lib/utils";
 import { notFound } from "next/navigation";
 
 interface LayoutProps {
@@ -19,14 +22,14 @@ const Layout = async ({ params: { username } }: LayoutProps) => {
   return (
     <ContainerLayout>
       {/* About topic */}
-      <RightLayout additionalClasses="divide-y [&>*]:py-2">
-        <p className="text-xl font-semibold text-slate-700">
+      <RightLayout>
+        <p className="text-2xl font-semibold text-slate-700">
           {selfProfile ? "Your Profile" : `About u/${username}`}
         </p>
         {userProfile.bio ? (
-          <p className="text-sm text-slate-700">{userProfile.bio}</p>
+          <p className="text-slate-700">{userProfile.bio}</p>
         ) : null}
-        <div className="text-sm text-slate-600 [&>*]:py-0.5">
+        <div className="mt-4 divide-y border-b border-t text-sm text-slate-600 [&>*]:py-0.5">
           <div className="flex items-center justify-between">
             <span>Followed By</span>
             <span>{numberFormatter.format(userProfile.counts.followedBy)}</span>
@@ -36,7 +39,11 @@ const Layout = async ({ params: { username } }: LayoutProps) => {
             <span>{numberFormatter.format(userProfile.counts.posts)}</span>
           </div>
         </div>
-        {selfProfile ? null : (
+        {selfProfile ? (
+          <div className={cn(buttonVariants(), "mt-4 w-full")}>
+            <Settings userId={userProfile.id} />
+          </div>
+        ) : (
           /* Toggle follow button */
           <FollowToggle
             username={userProfile.username!}

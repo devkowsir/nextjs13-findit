@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import "@/styles/globals.css";
-import Navbar from "@/components/navmenu/Navbar";
 import Providers from "@/components/Providers";
+import Navbar from "@/components/navmenu/Navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { getAuthSession } from "@/lib/auth";
+import "@/styles/globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +23,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} bg-slate-50 px-2 pt-12 text-slate-700`}
+        className={`${inter.className} bg-slate-50 px-2 pt-12 text-slate-700 sm:px-4`}
       >
         <div id="dialog-container"></div>
         <Navbar />

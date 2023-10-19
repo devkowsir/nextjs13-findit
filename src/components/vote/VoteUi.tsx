@@ -10,15 +10,17 @@ import { Button } from "../ui/button";
 interface VoteUiProps {
   className?: string;
   userVote: VoteType | null;
-  votesAmount: number;
+  rating: number;
   updateVote: any;
+  isLoading: boolean;
 }
 
 const VoteUi: React.FC<VoteUiProps> = ({
   userVote,
-  votesAmount,
+  rating,
   updateVote,
   className,
+  isLoading,
 }) => {
   return (
     <div
@@ -27,7 +29,12 @@ const VoteUi: React.FC<VoteUiProps> = ({
         className,
       )}
     >
-      <Button size={"xs"} variant={"secondary"} className="bg-transparent">
+      <Button
+        disabled={isLoading}
+        size={"xs"}
+        variant={"secondary"}
+        className="bg-transparent"
+      >
         <ArrowBigUp
           className={`${
             userVote === "UP"
@@ -38,8 +45,13 @@ const VoteUi: React.FC<VoteUiProps> = ({
           size={24}
         />
       </Button>
-      <span className="text-sm">{numberFormatter.format(votesAmount)}</span>
-      <Button size={"xs"} variant={"secondary"} className="bg-transparent">
+      <span className="text-sm">{numberFormatter.format(rating)}</span>
+      <Button
+        disabled={isLoading}
+        size={"xs"}
+        variant={"secondary"}
+        className="bg-transparent"
+      >
         <ArrowBigDown
           className={`${
             userVote === "DOWN"

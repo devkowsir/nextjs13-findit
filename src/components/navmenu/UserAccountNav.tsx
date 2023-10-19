@@ -3,7 +3,6 @@
 import UserAvatar from "@/components/UserAvatar";
 import { useState } from "react";
 import UserNavMenu from "./UserNavMenu";
-import { User } from "next-auth";
 
 interface UserAccountNavProps {
   user: {
@@ -21,7 +20,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user, ...props }) => {
   return (
     <div
       {...props}
-      className="relative mr-2 h-8 w-8 shrink-0 rounded-full border border-slate-300 sm:mr-0"
+      className="relative h-8 w-8 shrink-0 rounded-full border border-slate-300"
       onClick={() => setShowUserMenu((prev) => !prev)}
     >
       <UserAvatar user={user} className="cursor-pointer" />

@@ -66,11 +66,69 @@
   }
 }
 
+.not-prose.link-tool {
+  @apply my-4 flex justify-between gap-4 rounded-sm p-4 shadow transition hover:shadow-md;
+}
+
+.not-prose.link-tool .meta {
+  @apply flex flex-col;
+}
+
+.not-prose.link-tool .title {
+  @apply font-semibold text-slate-800;
+}
+
+.not-prose.link-tool .description {
+  @apply text-sm text-slate-500;
+}
+
+.not-prose.link-tool .host {
+  @apply mt-auto text-sm font-bold text-slate-400;
+}
+
+.not-prose.link-tool .image {
+  @apply aspect-square h-fit w-3/12 max-w-[100px] bg-cover;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .prose {
+    @apply prose-headings:my-2;
+    @apply prose-p:my-1;
+    @apply prose-figure:my-2 prose-figcaption:mt-1 prose-figcaption:text-center;
+    @apply prose-ul:my-2;
+    @apply prose-ol:my-2;
+    @apply prose-li:my-0.5 prose-li:pl-2;
+    @apply prose-code:rounded-sm;
+    @apply prose-pre:my-2;
+    @apply prose-table:my-3;
+    @apply prose-thead:font-bold;
+    @apply prose-tr:my-0.5 prose-tr:leading-tight;
+    @apply prose-th:border prose-th:py-1 prose-th:pl-2;
+    @apply prose-td:border prose-td:py-1 prose-td:pl-2;
+  }
+  .prose .inline-code {
+    @apply inline-block bg-slate-100;
+  }
+}
+
+.skeleton {
+  animation: skeleton-bg 1s linear alternate infinite;
+}
+
+@keyframes skeleton-bg {
+  0% {
+    background-color: hsl(200, 20%, 70%);
+  }
+  100% {
+    background-color: hsl(200, 20%, 90%);
   }
 }

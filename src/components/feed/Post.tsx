@@ -9,43 +9,42 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ForwardedRef, forwardRef } from "react";
 import PostMetadata from "../post/PostMetadata";
+import { SkeletonText } from "../Skeleton";
 
-interface MainFeedPostProps {
+interface PostProps {
   post: ExtendedPost;
 }
 
-function Post(
-  { post }: MainFeedPostProps,
-  ref: ForwardedRef<HTMLLIElement | null>,
-) {
+function Post({ post }: PostProps, ref?: ForwardedRef<HTMLLIElement | null>) {
   const pathname = usePathname();
 
   return (
-    <li ref={ref} className="rounded-md bg-white shadow">
-      <div className="relative flex grow flex-col gap-2 px-4 py-2">
-        <PostMetadata
-          createdAt={post.createdAt}
-          topicName={pathname.startsWith(`/t/`) ? undefined : post.topicName}
-          username={post.author.username!}
-          userId={post.author.id}
-        />
-        <Link href={`/t/${post.topicName}/post/${post.id}`}>
-          <h2 className="cursor-pointer text-xl font-semibold">
-            {" "}
-            {post.title}
-          </h2>
+    <li {...(ref ? { ref } : {})} className="rounded-md bg-white p-4 shadow">
+      <PostMetadata
+        createdAt={post.createdAt}
+        topicName={pathname.startsWith(`/t/`) ? undefined : post.topicName}
+        username={post.author.username!}
+        userId={post.author.id}
+      />
+      <article className="prose prose-slate relative max-h-96 overflow-hidden">
+        <Link
+          href={`/t/${post.topicName}/post/${post.id}`}
+          className="no-underline"
+        >
+          <h2>{post.title}</h2>
         </Link>
         <EditorOutput data={post.content} />
-      </div>
-      <div className="flex items-center gap-4 px-4 py-2 text-sm">
+        <div className="absolute bottom-0 left-0 top-80 w-full bg-gradient-to-b from-transparent to-white" />
+      </article>
+      <div className="mt-3 flex items-center gap-4 text-sm">
         <PostVoteClient
           postId={post.id}
           initialUserVote={post.userVote}
-          initialVotesAmount={post.rating}
+          initialRating={post.rating}
           mutationUrl="/api/post-vote"
         />
         <Link
-          href={`/t/${post.topicName}/post/${post.id}`}
+          href={`/t/${post.topicName}/post/${post.id}#comments`}
           className="flex cursor-pointer items-center rounded-md bg-slate-50 hover:bg-accent"
         >
           <MessagesSquare
@@ -61,4 +60,4 @@ function Post(
   );
 }
 
-export default forwardRef<HTMLLIElement | null, MainFeedPostProps>(Post);
+export default forwardRef<HTMLLIElement | null, PostProps>(Post);

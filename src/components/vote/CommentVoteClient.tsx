@@ -1,16 +1,16 @@
 "use client";
 
+import { setCommentsCache } from "@/lib/queryCacheUpdaters/commentCacheUpdater";
 import { VoteType } from "@prisma/client";
 import VoteUi from "./VoteUi";
 import useVoteClient from "./useVoteClient";
-import { setCommentsCache } from "@/lib/queryCacheUpdaters/commentCacheUpdater";
-import { usePathname } from "next/navigation";
+import { useComment } from "../comment/CommentStore";
 
 interface CommentVoteClientProps {
   commentId: string;
   postId: string;
   initialUserVote: VoteType | null;
-  initialVotesAmount: number;
+  initialRating: number;
   mutationUrl: string;
   className?: string;
 }
@@ -19,17 +19,19 @@ const CommentVoteClient: React.FC<CommentVoteClientProps> = ({
   commentId,
   postId,
   initialUserVote,
-  initialVotesAmount,
+  initialRating,
   mutationUrl,
   className,
 }) => {
-  const { updateVote, userVote, votesAmount } = useVoteClient({
+  const { updateComment } = useComment();
+  const { updateVote, userVote, rating, isLoading } = useVoteClient({
     postIdOrCommentId: commentId,
     initialUserVote,
-    initialVotesAmount,
+    initialRating,
     mutationUrl,
     cacheUpdater(data, queryClient) {
       setCommentsCache(postId, commentId, data, queryClient);
+      updateComment(commentId, data);
     },
   });
 
@@ -37,7 +39,8 @@ const CommentVoteClient: React.FC<CommentVoteClientProps> = ({
     <VoteUi
       updateVote={updateVote}
       userVote={userVote}
-      votesAmount={votesAmount}
+      rating={rating}
+      isLoading={isLoading}
       className={className}
     />
   );

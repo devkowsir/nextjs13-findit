@@ -1,32 +1,37 @@
 "use client";
 
+import { setInfinitePostsCache } from "@/lib/queryCacheUpdaters/infinitePostCacheUpdate";
+import { ExtendedPost } from "@/types/db";
 import { VoteType } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
 import VoteUi from "./VoteUi";
 import useVoteClient from "./useVoteClient";
-import { setInfinitePostsCache } from "@/lib/queryCacheUpdaters/infinitePostCacheUpdate";
 
 interface PostVoteClientProps {
   postId: string;
   initialUserVote: VoteType | null;
-  initialVotesAmount: number;
+  initialRating: number;
   mutationUrl: string;
+  setPost?: Dispatch<SetStateAction<ExtendedPost>>;
   className?: string;
 }
 
 const PostVoteClient: React.FC<PostVoteClientProps> = ({
   postId,
   initialUserVote,
-  initialVotesAmount,
+  initialRating,
   mutationUrl,
+  setPost,
   className,
 }) => {
-  const { updateVote, userVote, votesAmount } = useVoteClient({
+  const { updateVote, userVote, rating, isLoading } = useVoteClient({
     postIdOrCommentId: postId,
     initialUserVote,
-    initialVotesAmount,
+    initialRating,
     mutationUrl,
-    cacheUpdater: (data, queryClient) => {
+    cacheUpdater(data, queryClient) {
       setInfinitePostsCache(postId, data, queryClient);
+      setPost && setPost((old) => ({ ...old, ...data }));
     },
   });
 
@@ -34,8 +39,9 @@ const PostVoteClient: React.FC<PostVoteClientProps> = ({
     <VoteUi
       updateVote={updateVote}
       userVote={userVote}
-      votesAmount={votesAmount}
+      rating={rating}
       className={className}
+      isLoading={isLoading}
     />
   );
 };

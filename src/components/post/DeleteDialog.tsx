@@ -44,8 +44,8 @@ const DeleteDialog = ({ postId }: DeleteDialogProps) => {
       }}
     >
       <p className="pb-4">
-        You won't be able to recover this post. Are you sure you want to delete
-        this post?
+        You won&apos;t be able to recover this post. Are you sure you want to
+        delete this post?
       </p>
       <div className="flex justify-center gap-2">
         <Button

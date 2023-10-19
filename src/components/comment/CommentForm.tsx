@@ -2,13 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/useToast";
-import { addToCommentsCache } from "@/lib/queryCacheUpdaters/commentCacheUpdater";
 import { setInfinitePostsCache } from "@/lib/queryCacheUpdaters/infinitePostCacheUpdate";
 import { CommentCreationPayload } from "@/lib/validators/comment";
 import { ExtendedComment } from "@/types/db";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Dispatch, SetStateAction, useState } from "react";
+import { usePost } from "../post/PostStore";
+import { useComment } from "./CommentStore";
 
 interface CommentFormProps {
   postId: string;
@@ -24,6 +25,8 @@ const CommentForm: React.FC<CommentFormProps> = ({
   setReplyingTo,
 }) => {
   const queryClient = useQueryClient();
+  const { addComment } = useComment();
+  const { setPost } = usePost();
   const [comment, setComment] = useState<string>(
     replyToName ? `@${replyToName} ` : "",
   );
@@ -53,16 +56,14 @@ const CommentForm: React.FC<CommentFormProps> = ({
       });
     },
     onSuccess(comment) {
-      addToCommentsCache(
-        postId,
-        { ...comment, userVote: null, rating: 0, repliesCount: 0 },
-        queryClient,
-      );
+      addComment({ ...comment, userVote: null, rating: 0, repliesCount: 0 });
       setInfinitePostsCache(
         postId,
         (old) => ({ ...old, commentsCount: old.commentsCount + 1 }),
         queryClient,
       );
+      comment.replyToId === null &&
+        setPost((prev) => ({ ...prev, commentsCount: prev.commentsCount + 1 }));
       setComment("");
       setReplyingTo && setReplyingTo("");
       return toast({

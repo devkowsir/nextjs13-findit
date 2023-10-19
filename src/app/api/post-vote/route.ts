@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       ]);
       userVote = type;
     }
-    return new Response(JSON.stringify({ userVote, votesAmount: post.rating }));
+    return new Response(JSON.stringify({ userVote, rating: post.rating }));
   } catch (err) {
     console.error(err);
     if (err instanceof ZodError)

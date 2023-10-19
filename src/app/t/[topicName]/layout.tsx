@@ -25,14 +25,14 @@ const Layout = async ({ children, params: { topicName } }: LayoutProps) => {
   return (
     <ContainerLayout>
       {/* About topic */}
-      <RightLayout additionalClasses="divide-y [&>*]:py-2">
-        <p className="text-xl font-semibold text-slate-700">
+      <RightLayout>
+        <p className="text-2xl font-semibold text-slate-700">
           About t/{topicName}
         </p>
         {topicSummary.description ? (
-          <p className="text-sm text-slate-700">{topicSummary.description}</p>
+          <p className="mb-2 text-slate-700">{topicSummary.description}</p>
         ) : null}
-        <div className="text-sm text-slate-600 [&>*]:py-0.5">
+        <div className="divide-y border-b border-t text-sm text-slate-600 [&>*]:py-0.5">
           <div className="flex items-center justify-between">
             <span>Created</span>
             <span>{topicSummary.createdAt.toDateString()}</span>
@@ -42,10 +42,10 @@ const Layout = async ({ children, params: { topicName } }: LayoutProps) => {
             <span>{numberFormatter.format(topicSummary.subscriberCount)}</span>
           </div>
         </div>
-        <div className="space-y-2 py-4">
+        <div className="mt-4 flex flex-col gap-2">
           {subscribed ? (
             <Link
-              className={cn(buttonVariants(), "w-full")}
+              className={cn(buttonVariants())}
               href={`/t/${topicName}/create`}
             >
               Create Post

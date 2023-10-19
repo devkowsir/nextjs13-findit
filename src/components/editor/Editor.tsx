@@ -13,7 +13,7 @@ const Editor = ({
 }) => {
   const initializeEditor = useCallback(async () => {
     const EditorJS = (await import("@editorjs/editorjs")).default;
-    // const Header = (await import("@editorjs/header")).default;
+    const Header = (await import("@editorjs/header")).default;
     const Table = (await import("@editorjs/table"!)).default;
     const List = (await import("@editorjs/list"!)).default;
     const Embed = (await import("@editorjs/embed"!)).default;
@@ -33,11 +33,11 @@ const Editor = ({
         },
         data: data ?? {},
         tools: {
-          // header: Header,
+          header: Header,
           linkTool: {
             class: LinkTool,
             config: {
-              endpoint: "/api/link",
+              endpoint: "/api/editor/link",
             },
           },
           image: {

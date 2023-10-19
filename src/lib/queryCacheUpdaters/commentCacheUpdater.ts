@@ -54,8 +54,34 @@ export const addToCommentsCache = (
     setCommentsCache(
       postId,
       comment.replyToId,
-      (old) => (old.repliesCount = old.repliesCount + 1),
+      (old) => (old.repliesCount = old.repliesCount++),
       queryClient,
     );
   }
 };
+
+export function deleteFromCommentsCache(
+  postId: string,
+  commentId: string,
+  queryClient: QueryClient,
+) {
+  const oldData: ExtendedComment[] | undefined = queryClient.getQueryData([
+    "comments",
+    postId,
+  ]);
+  if (!oldData) return;
+
+  const commentIndex = oldData.findIndex((comment) => comment.id === commentId);
+  if (commentIndex < 0) return;
+
+  const comment = oldData[commentIndex];
+  if (comment.replyToId) {
+    setCommentsCache(
+      postId,
+      comment.replyToId,
+      (old) => old.repliesCount--,
+      queryClient,
+    );
+  }
+  oldData.splice(commentIndex, 1);
+}

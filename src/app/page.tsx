@@ -15,19 +15,19 @@ export default async function Home() {
   return (
     <ContainerLayout>
       {/* About This Page */}
-      <RightLayout additionalClasses="divide-y [&>*]:py-2">
-        <p className="text-xl font-semibold text-slate-700">About Reddit</p>
-        <p className="text-sm text-slate-700">
+      <RightLayout>
+        <p className="text-2xl font-semibold text-slate-700">About FindIt</p>
+        <p className="text-slate-700">
           Your personal FindIt front page. Come here to check in with your
           favorite communities.
         </p>
-        <div className="space-y-2">
-          <Link href="/create" className={cn(buttonVariants(), "w-full")}>
+        <div className="mt-4 flex flex-col gap-2">
+          <Link href="/create" className={cn(buttonVariants(), "")}>
             Create Post
           </Link>
           <Link
             href="/t/create"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+            className={cn(buttonVariants({ variant: "outline" }), "")}
           >
             Create Topic
           </Link>

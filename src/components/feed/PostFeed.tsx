@@ -1,14 +1,16 @@
 "use client";
 
 import Post from "@/components/feed/Post";
+import { random } from "@/lib/utils";
 import { ExtendedPost } from "@/types/db";
 import { useIntersection } from "@mantine/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { SkeletonText } from "../Skeleton";
+import Sort from "../Sort";
 import BackButton from "./BackButton";
-import SortFeed from "./SortFeed";
+import PostFallBack from "./PostFallback";
 
 interface PostFeedProps {
   initialPosts: ExtendedPost[];
@@ -67,10 +69,10 @@ const PostFeed: React.FC<PostFeedProps> = ({
   const posts = data?.pages?.flatMap((page) => page) ?? initialPosts;
 
   return (
-    <div>
-      <div className="mb-4 flex">
+    <div className="pb-4">
+      <div className="flex items-center">
         <BackButton />
-        <SortFeed sortMode={sortMode} setSortMode={setSortMode} />
+        <Sort sortMode={sortMode} setSortMode={setSortMode} />
       </div>
       {posts.length > 0 ? (
         <ul className="col-span-2 flex flex-col space-y-6">
@@ -81,17 +83,19 @@ const PostFeed: React.FC<PostFeedProps> = ({
               post={post}
             />
           ))}
+          {isFetchingNextPage && (
+            <>
+              <PostFallBack />
+              <PostFallBack />
+              <PostFallBack />
+            </>
+          )}
         </ul>
       ) : (
         <div className="text-center text-lg font-semibold capitalize text-slate-700">
           {sortMode} Posts Not Found.
         </div>
       )}
-      {isFetchingNextPage ? (
-        <div className="my-12">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-center" />
-        </div>
-      ) : null}
     </div>
   );
 };

@@ -10,7 +10,9 @@ const SignIn = () => {
 
   return (
     <>
-      <Button onClick={() => setDialogToShow("sign-in")}>Sign In</Button>
+      <Button className="shrink-0" onClick={() => setDialogToShow("sign-in")}>
+        Sign In
+      </Button>
       {dialogToShow === "sign-in" && (
         <Dialog onCloseAction={() => setDialogToShow(null)}>
           <div className="space-y-6 py-4 text-center">

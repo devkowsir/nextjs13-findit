@@ -1,7 +1,10 @@
 import { INFINITE_SCROLLING_PAGINATION_RESULTS } from "@/config";
-import { ExtendedComment, ExtendedPost } from "@/types/db";
+import { Content, ExtendedComment, ExtendedPost } from "@/types/db";
 import { VoteType } from "@prisma/client";
+import EditorOutput from "../../components/editor/EditorOutput";
 import prisma from "./prisma";
+
+const ONE_DAY = 24 * 60 * 60 * 1000;
 
 interface GetPostRequirements {
   subscriptions: string[];
@@ -75,6 +78,77 @@ export async function getUserVoteFromVotesArray(
   return votes.find(({ userId: _userId }) => userId === _userId)?.type || null;
 }
 
+export async function getPostWithTopComments(
+  postId: string,
+  userId?: string,
+): Promise<{ post: ExtendedPost; comments: ExtendedComment[] } | null> {
+  const data = await prisma.post.findUnique({
+    where: { id: postId },
+    include: {
+      author: { select: { id: true, username: true, image: true } },
+      comments: {
+        where: { replyToId: null },
+        select: {
+          id: true,
+          createdAt: true,
+          text: true,
+          rating: true,
+          author: { select: { id: true, username: true, image: true } },
+          _count: { select: { replies: true } },
+        },
+        orderBy: { rating: "desc" },
+        take: 5,
+      },
+    },
+  });
+  if (!data) return null;
+
+  const userPostVote = userId ? await getUserPostVote(postId, userId) : null;
+
+  const post = {
+    id: data.id,
+    topicName: data.topicId,
+    createdAt: data.createdAt,
+    author: data.author,
+    rating: data.rating,
+    title: data.title,
+    content: data.content as unknown as Content,
+    commentsCount: data.comments.length,
+    userVote: userPostVote,
+  };
+
+  let userCommentVotes: (VoteType | null)[] = new Array(
+    data.comments.length,
+  ).fill(null);
+
+  if (userId) {
+    userCommentVotes = (
+      await Promise.all(
+        data.comments.map((comment) =>
+          prisma.commentVote.findUnique({
+            where: { userId_commentId: { commentId: comment.id, userId } },
+            select: { type: true },
+          }),
+        ),
+      )
+    ).map((vote) => vote?.type || null);
+  }
+
+  const comments = data.comments.map((comment, index) => ({
+    id: comment.id,
+    createdAt: comment.createdAt,
+    author: comment.author,
+    postId,
+    text: comment.text,
+    replyToId: null,
+    userVote: userCommentVotes?.[index],
+    rating: comment.rating,
+    repliesCount: comment._count.replies,
+  }));
+
+  return { post, comments };
+}
+
 export async function getPost(
   postId: string,
   userId?: string,
@@ -96,7 +170,7 @@ export async function getPost(
         author: post.author,
         topicName: post.topicId,
         title: post.title,
-        content: post.content,
+        content: post.content as unknown as Content,
         createdAt: post.createdAt,
         userVote,
         rating: post.rating,
@@ -135,7 +209,6 @@ export async function getFeedPosts({
   userId,
   authorId,
 }: GetPostRequirements): Promise<ExtendedPost[]> {
-  const ONE_DAY = 24 * 60 * 60 * 1000;
   let filter: any = {};
   if (subscriptions.length) filter.topicId = { in: subscriptions };
   if (authorId) filter.authorId = authorId;
@@ -183,7 +256,7 @@ export async function getFeedPosts({
       author: post.author,
       topicName: post.topicId,
       title: post.title,
-      content: post.content,
+      content: post.content as unknown as Content,
       createdAt: post.createdAt,
       userVote: userVotes?.[index]?.type || null,
       rating: post.rating,
@@ -196,10 +269,19 @@ export async function getComments(
   postId: string,
   userId: string | null,
   replyToId: string | null,
+  sortMode: string,
   skip?: number,
 ): Promise<ExtendedComment[]> {
+  let filter: any = { postId, replyToId };
+  if (sortMode === "hot") {
+    filter.createdAt = { gte: new Date(Date.now() - ONE_DAY) };
+    filter.rating = { gte: 1 };
+  } else if (sortMode === "top") {
+    filter.rating = { gte: 0 };
+  }
+
   const comments = await prisma.comment.findMany({
-    where: { postId, replyToId },
+    where: filter,
     select: {
       id: true,
       createdAt: true,
@@ -209,7 +291,7 @@ export async function getComments(
       author: { select: { id: true, username: true, image: true } },
       _count: { select: { replies: true } },
     },
-    orderBy: [{ commentVotes: { _count: "desc" } }, { createdAt: "asc" }],
+    orderBy: sortMode === "new" ? { createdAt: "desc" } : { rating: "desc" },
     take: 5,
     skip: skip || 0,
   });
@@ -337,7 +419,7 @@ export async function getUserProfile(authorName: string, userId?: string) {
         createdAt: post.createdAt,
         author,
         title: post.title,
-        content: post.content,
+        content: post.content as unknown as Content,
         rating: post.rating,
         commentsCount: post._count.comments,
         userVote: userVotes[index],

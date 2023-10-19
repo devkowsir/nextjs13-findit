@@ -9,58 +9,113 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useReducer } from "react";
 
 interface UseVoteClientProps {
   postIdOrCommentId: string;
   initialUserVote: VoteType | null;
-  initialVotesAmount: number;
+  initialRating: number;
   mutationUrl: string;
-  cacheUpdater: (data: any, queryClient: QueryClient) => void;
+  cacheUpdater: (
+    data: { userVote: VoteType | null; rating: number },
+    queryClient: QueryClient,
+  ) => void;
+}
+
+interface VoteStore {
+  currRating: number;
+  prevRating: number;
+  currVote: VoteType | null;
+  prevVote: VoteType | null;
+}
+
+type ACTIONTYPE =
+  | { type: "VOTE"; payload: VoteType }
+  | { type: "SET"; payload: { rating: number; vote: VoteType | null } }
+  | { type: "RESET" };
+
+function reducer(state: VoteStore, action: ACTIONTYPE): VoteStore {
+  switch (action.type) {
+    case "VOTE":
+      let currRating: number;
+      const currVote =
+        state.currVote === action.payload ? null : action.payload;
+
+      if (state.currVote === action.payload) {
+        currRating =
+          action.payload === "UP" ? state.currRating - 1 : state.currRating + 1;
+      } else if (state.currVote === null) {
+        currRating =
+          action.payload === "UP" ? state.currRating + 1 : state.currRating - 1;
+      } else {
+        currRating =
+          action.payload === "UP" ? state.currRating + 2 : state.currRating - 2;
+      }
+
+      return {
+        currRating,
+        prevRating: state.currRating,
+        currVote,
+        prevVote: state.currVote,
+      };
+
+    case "SET":
+      return {
+        ...state,
+        currRating: action.payload.rating,
+        currVote: action.payload.vote,
+      };
+
+    case "RESET":
+      return {
+        currRating: state.prevRating,
+        prevRating: state.prevRating,
+        currVote: state.prevVote,
+        prevVote: state.prevVote,
+      };
+
+    default:
+      throw new Error("Invalid action to the reducer.");
+  }
 }
 
 const useVoteClient = ({
   postIdOrCommentId: id,
   initialUserVote,
-  initialVotesAmount,
+  initialRating,
   mutationUrl,
   cacheUpdater,
 }: UseVoteClientProps) => {
-  const router = useRouter();
-  const [userVote, setUserVote] = useState(initialUserVote);
-  const [votesAmount, setVoteAmount] = useState(initialVotesAmount);
   const queryClient = useQueryClient();
+  const initialState: VoteStore = {
+    currRating: initialRating,
+    prevRating: initialRating,
+    currVote: initialUserVote,
+    prevVote: initialUserVote,
+  };
+  const [{ currRating, currVote }, dispatch] = useReducer(
+    reducer,
+    initialState,
+  );
 
-  const { mutate: updateVote } = useMutation({
+  const { mutate: updateVote, isLoading } = useMutation({
     async mutationFn(type: VoteType) {
       const payload: VoteRequest = { type, id };
       const { data } = await axios.post(mutationUrl, payload);
-      return data as { userVote: VoteType; votesAmount: number };
+      return data as { userVote: VoteType | null; rating: number };
     },
     onMutate: (voteType) => {
-      setUserVote((currVote) => (currVote === voteType ? null : voteType));
-      setVoteAmount((currVoteAmount) =>
-        userVote === voteType
-          ? voteType === "UP"
-            ? currVoteAmount - 1
-            : currVoteAmount + 1
-          : userVote === null
-          ? voteType === "UP"
-            ? currVoteAmount + 1
-            : currVoteAmount - 1
-          : voteType === "UP"
-          ? currVoteAmount + 2
-          : currVoteAmount - 2,
-      );
+      dispatch({ type: "VOTE", payload: voteType });
     },
     onSuccess: (data) => {
-      setUserVote(data.userVote);
-      setVoteAmount(data.votesAmount);
+      dispatch({
+        type: "SET",
+        payload: { rating: data.rating, vote: data.userVote },
+      });
       cacheUpdater(data, queryClient);
     },
     onError(error) {
-      router.refresh();
+      dispatch({ type: "RESET" });
       if (error instanceof AxiosError) {
         switch (error.response?.status) {
           case 401:
@@ -93,7 +148,7 @@ const useVoteClient = ({
     },
   });
 
-  return { userVote, votesAmount, updateVote };
+  return { userVote: currVote, rating: currRating, updateVote, isLoading };
 };
 
 export default useVoteClient;

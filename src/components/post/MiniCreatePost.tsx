@@ -1,10 +1,10 @@
 "use client";
 
-import { User } from "next-auth";
-import UserAvatar from "./UserAvatar";
-import { usePathname, useRouter } from "next/navigation";
-import { Button } from "./ui/button";
 import { ImageIcon, Link2 } from "lucide-react";
+import { User } from "next-auth";
+import { usePathname, useRouter } from "next/navigation";
+import UserAvatar from "../UserAvatar";
+import { Button } from "../ui/button";
 
 interface MiniCreatePostProps {
   user: Pick<User, "image">;

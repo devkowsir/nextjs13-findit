@@ -1,3 +1,5 @@
+"use client";
+
 import axios from "axios";
 import {
   Dispatch,
@@ -21,9 +23,9 @@ const useHoverLogic = ({
   data,
 }: useHoverLogicProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const refCurrent = ref.current;
 
   useEffect(() => {
+    const refCurrent = ref.current;
     if (!refCurrent) return;
     let enterTimeOut: NodeJS.Timeout | undefined;
     let leaveTimeOut: NodeJS.Timeout | undefined;
@@ -63,7 +65,7 @@ const useHoverLogic = ({
       refCurrent.removeEventListener("mouseenter", mouseEnterHander);
       refCurrent.removeEventListener("mouseleave", mouseLeaveHander);
     };
-  }, [refCurrent, data]);
+  }, [ref, data]);
 
   return { isVisible };
 };

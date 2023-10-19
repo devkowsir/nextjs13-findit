@@ -27,7 +27,7 @@ const page: React.FC<pageProps> = async ({ params: { postId } }) => {
       </div>
       <div className="md:col-span-2">
         <h1 className="mb-4 text-3xl font-semibold text-slate-700">
-          Create Post
+          Update Post
         </h1>
         <EditForm post={post} />
       </div>

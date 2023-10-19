@@ -36,7 +36,7 @@ const Dialog: React.FC<DialogProps> = ({ children, onCloseAction }) => {
       <div
         role="dialog"
         ref={dialogRef}
-        className="relative w-96 rounded-md bg-slate-50 p-6 pt-8 text-center"
+        className="relative w-96 max-w-[90%] rounded-md bg-slate-50 p-6 pt-10 text-center"
       >
         <X
           className="absolute right-1 top-1 cursor-pointer p-1 text-slate-500"
