@@ -1,14 +1,15 @@
 "use client";
 
 import { toast } from "@/hooks/useToast";
+import { setInfinitePostsCache } from "@/lib/queryCacheUpdaters/infinitePostCacheUpdate";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Trash2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { usePost } from "../post/PostStore";
 import { Button } from "../ui/button";
 import Dialog, { useDialogStore } from "../ui/dialog";
 import { useComment } from "./CommentStore";
-import { setInfinitePostsCache } from "@/lib/queryCacheUpdaters/infinitePostCacheUpdate";
-import { useParams } from "next/navigation";
 
 interface DeleteProps {
   commentId: string;
@@ -18,7 +19,8 @@ const Delete = ({ commentId }: DeleteProps) => {
   const queryClient = useQueryClient();
   const { postId } = useParams() as { postId: string };
   const { dialogToShow, setDialogToShow } = useDialogStore();
-  const { deleteComment: deleteCommentCache, setPost } = useComment();
+  const { deleteComment: deleteCommentCache } = useComment();
+  const { setPost } = usePost();
 
   const { mutate: deleteComment, isLoading } = useMutation({
     mutationFn: async () => {
