@@ -21,7 +21,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, description } = TopicCreationRequestValidator.parse(body);
 
-    const topicExists = await prisma.topic.findFirst({ where: { name } });
+    const topicExists = await prisma.topic.findFirst({
+      where: { name: { equals: name, mode: "insensitive" } },
+    });
     if (topicExists)
       return new Response("Topic already exists", { status: 409 });
 

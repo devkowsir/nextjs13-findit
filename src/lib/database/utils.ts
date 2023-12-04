@@ -1,7 +1,6 @@
 import { INFINITE_SCROLLING_PAGINATION_RESULTS } from "@/config";
 import { Content, ExtendedComment, ExtendedPost } from "@/types/db";
 import { VoteType } from "@prisma/client";
-import EditorOutput from "../../components/editor/EditorOutput";
 import prisma from "./prisma";
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -40,7 +39,7 @@ export async function getTopicSummary(topicName: string) {
 
 export async function isUserSubscribed(topicName: string, userId: string) {
   return (await prisma.subscription.findUnique({
-    where: { userId_topicName: { topicName, userId } },
+    where: { userId_topicName: { userId, topicName } },
   }))
     ? true
     : false;
@@ -87,7 +86,7 @@ export async function getPostWithTopComments(
     include: {
       author: { select: { id: true, username: true, image: true } },
       comments: {
-        where: { replyToId: null },
+        where: { replyToId: undefined },
         select: {
           id: true,
           createdAt: true,
@@ -107,7 +106,7 @@ export async function getPostWithTopComments(
 
   const post = {
     id: data.id,
-    topicName: data.topicId,
+    topicName: data.topicName,
     createdAt: data.createdAt,
     author: data.author,
     rating: data.rating,
@@ -168,7 +167,7 @@ export async function getPost(
     ? {
         id: post.id,
         author: post.author,
-        topicName: post.topicId,
+        topicName: post.topicName,
         title: post.title,
         content: post.content as unknown as Content,
         createdAt: post.createdAt,
@@ -210,7 +209,7 @@ export async function getFeedPosts({
   authorId,
 }: GetPostRequirements): Promise<ExtendedPost[]> {
   let filter: any = {};
-  if (subscriptions.length) filter.topicId = { in: subscriptions };
+  if (subscriptions.length) filter.topicName = { in: subscriptions };
   if (authorId) filter.authorId = authorId;
   if (sortMode === "hot") {
     filter.createdAt = { gte: new Date(Date.now() - ONE_DAY) };
@@ -226,7 +225,7 @@ export async function getFeedPosts({
     select: {
       id: true,
       createdAt: true,
-      topicId: true,
+      topicName: true,
       title: true,
       content: true,
       rating: true,
@@ -254,7 +253,7 @@ export async function getFeedPosts({
     (post, index): ExtendedPost => ({
       id: post.id,
       author: post.author,
-      topicName: post.topicId,
+      topicName: post.topicName,
       title: post.title,
       content: post.content as unknown as Content,
       createdAt: post.createdAt,
@@ -352,22 +351,18 @@ export async function getUserSummary(userId: string) {
   };
 }
 
-export async function getUserProfile(authorName: string, userId?: string) {
-  const isFollowing = userId
-    ? (await prisma.follow.findUnique({
-        where: {
-          followedById_follwingToId: {
-            followedById: userId,
-            follwingToId: authorName,
-          },
-        },
+export async function getUserProfile(username: string, currUserId?: string) {
+  const isFollowing = currUserId
+    ? (await prisma.user.findUnique({
+        where: { username },
+        include: { followedBy: { where: { follwingToId: currUserId } } },
       }))
       ? true
       : false
     : false;
 
   const data = await prisma.user.findUnique({
-    where: { username: authorName },
+    where: { username: username },
     select: {
       id: true,
       name: true,
@@ -387,7 +382,7 @@ export async function getUserProfile(authorName: string, userId?: string) {
           title: true,
           content: true,
           rating: true,
-          topicId: true,
+          topicName: true,
           _count: { select: { comments: { where: { replyToId: null } } } },
         },
       },
@@ -396,10 +391,10 @@ export async function getUserProfile(authorName: string, userId?: string) {
 
   if (!data) return null;
   const author = { id: data.id, image: data.image, username: data.username };
-  const userVotes = userId
+  const userVotes = currUserId
     ? await getUserPostVotes(
         data.posts.map((post) => post.id),
-        userId,
+        currUserId,
       )
     : new Array(data.posts.length).fill(null);
 
@@ -415,7 +410,7 @@ export async function getUserProfile(authorName: string, userId?: string) {
     posts: data.posts.map(
       (post, index): ExtendedPost => ({
         id: post.id,
-        topicName: post.topicId,
+        topicName: post.topicName,
         createdAt: post.createdAt,
         author,
         title: post.title,

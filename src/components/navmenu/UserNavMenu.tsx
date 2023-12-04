@@ -27,7 +27,7 @@ const UserNavMenu: React.FC<UserNavMenuProps> = ({ user, setShowUserMenu }) => {
       <div
         ref={userNavMenuRef}
         onClick={(e) => e.stopPropagation()}
-        className="absolute right-0 top-full z-10 w-64 divide-y rounded-lg bg-white py-2 shadow [&>*]:px-1  [&>*]:py-1"
+        className="absolute right-0 top-full z-10 w-64 divide-y rounded-lg bg-white py-2 shadow [&>*]:py-1"
       >
         <div className="mb-2 [&>*]:px-4">
           <p className="text-lg">{user.name}</p>

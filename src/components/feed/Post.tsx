@@ -26,12 +26,12 @@ function Post({ post }: PostProps, ref?: ForwardedRef<HTMLLIElement | null>) {
         username={post.author.username!}
         userId={post.author.id}
       />
-      <article className="prose prose-slate relative max-h-96 overflow-hidden">
+      <article className="prose relative max-h-96 overflow-hidden">
         <Link
-          href={`/t/${post.topicName}/post/${post.id}`}
+          href={`/t/${post.topicName}/post/${post.id}/${post.title}`}
           className="no-underline"
         >
-          <h2>{post.title}</h2>
+          <h1>{post.title}</h1>
         </Link>
         <EditorOutput data={post.content} />
         <div className="absolute bottom-0 left-0 top-80 w-full bg-gradient-to-b from-transparent to-white" />

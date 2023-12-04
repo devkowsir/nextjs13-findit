@@ -1,11 +1,10 @@
-import { getPost } from "@/lib/database/utils";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/database/prisma";
+import { getPost } from "@/lib/database/utils";
 import {
   PostCreationValidator,
   PostUpdateValidator,
 } from "@/lib/validators/post";
-import { nanoid } from "nanoid";
 import { z } from "zod";
 
 export async function GET(req: Request) {
@@ -36,19 +35,12 @@ export async function POST(req: Request) {
         status: 405,
       });
 
-    const id = title
-      .toLowerCase()
-      .replace(/ /g, "-")
-      .replace(/[^\w-]+/g, "")
-      .concat("-", nanoid(8));
-
     await prisma.post.create({
       data: {
-        id,
-        title: title,
+        title,
         authorId: session.user?.id,
         content,
-        topicId: topicName,
+        topicName,
       },
     });
 

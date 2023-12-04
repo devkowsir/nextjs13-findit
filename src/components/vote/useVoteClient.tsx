@@ -1,6 +1,5 @@
 "use client";
 
-import { toast } from "@/hooks/useToast";
 import { VoteRequest } from "@/lib/validators/vote";
 import { VoteType } from "@prisma/client";
 import {
@@ -8,8 +7,9 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useReducer } from "react";
+import useApiErrorHandler from "../useApiErrorHandler";
 
 interface UseVoteClientProps {
   postIdOrCommentId: string;
@@ -98,6 +98,8 @@ const useVoteClient = ({
     initialState,
   );
 
+  const errorHandler = useApiErrorHandler();
+
   const { mutate: updateVote, isLoading } = useMutation({
     async mutationFn(type: VoteType) {
       const payload: VoteRequest = { type, id };
@@ -116,35 +118,7 @@ const useVoteClient = ({
     },
     onError(error) {
       dispatch({ type: "RESET" });
-      if (error instanceof AxiosError) {
-        switch (error.response?.status) {
-          case 401:
-            return toast({
-              title: "You are not authorized.",
-              description: "Please Sign In to create topic.",
-              variant: "destructive",
-            });
-          case 409:
-            return toast({
-              title: "This topic already exists.",
-              description: "Please provide a different name.",
-              variant: "destructive",
-            });
-
-          case 500:
-            return toast({
-              title: "Something went wrong.",
-              description: "Please let us know info@findit.com",
-              variant: "destructive",
-            });
-        }
-      } else {
-        return toast({
-          title: "Something went wrong.",
-          description: "Please let us know info@findit.com",
-          variant: "destructive",
-        });
-      }
+      errorHandler({ error });
     },
   });
 

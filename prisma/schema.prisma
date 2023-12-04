@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "mongodb"
+  url      = env("DATABASE_URI")
 }
 
 enum VoteType {
@@ -17,17 +16,17 @@ enum VoteType {
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -36,123 +35,129 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
-  userId       String
+  userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id                     String         @id @default(cuid())
+  id                     String         @id @default(auto()) @map("_id") @db.ObjectId
   name                   String?
   email                  String?        @unique
-  bio                    String?        @db.VarChar(1024)
+  bio                    String?
   emailVerified          DateTime?
-  username               String?        @unique
+  username               String?
   image                  String?
   usernameHasBeenChanged Boolean        @default(false)
-  postVotes              PostVote[]
-  topics                 Topic[]        @relation("CreatedBy")
-  subscriptions          Subscription[]
   accounts               Account[]
   sessions               Session[]
+  topics                 Topic[]        @relation("CreatedBy")
+  subscriptions          Subscription[]
   posts                  Post[]
+  postVotes              PostVote[]
   comments               Comment[]
   commentVotes           CommentVote[]
   followedBy             Follow[]       @relation("FollowedBy")
   followingTo            Follow[]       @relation("FollowingTo")
 
-  @@index([username])
+  @@unique([username])
 }
 
 model Follow {
-  followedBy   User   @relation("FollowedBy", fields: [followedById], references: [id])
-  followedById String
-  followingTo  User   @relation("FollowingTo", fields: [follwingToId], references: [id])
-  follwingToId String
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  followedBy   User   @relation("FollowedBy", fields: [followedById], references: [id], onDelete: Cascade)
+  followedById String @db.ObjectId
+  followingTo  User   @relation("FollowingTo", fields: [follwingToId], references: [id], onDelete: Cascade)
+  follwingToId String @db.ObjectId
 
   @@unique([followedById, follwingToId])
 }
 
 model Topic {
-  name        String   @id
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  description String?  @db.Text
+  description String?
   posts       Post[]
 
-  creatorId   String
-  creator     User           @relation("CreatedBy", fields: [creatorId], references: [id])
+  creatorId   String         @db.ObjectId
+  creator     User           @relation("CreatedBy", fields: [creatorId], references: [id], onDelete: Cascade)
   subscribers Subscription[]
 }
 
 model Subscription {
-  user      User   @relation(fields: [userId], references: [id])
-  userId    String
-  topic     Topic  @relation(fields: [topicName], references: [name])
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String @db.ObjectId
+  topic     Topic  @relation(fields: [topicName], references: [name], onDelete: Cascade)
   topicName String
 
-  @@id([userId, topicName])
+  @@unique([userId, topicName])
 }
 
 model Post {
-  id        String     @id @default(cuid())
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   Json?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  rating    Int        @default(0)
-  author    User       @relation(fields: [authorId], references: [id])
-  authorId  String
-  topic     Topic      @relation(fields: [topicId], references: [name])
-  topicId   String
+  rating    Int        @default(0) @db.Int
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String     @db.ObjectId
+  topic     Topic      @relation(fields: [topicName], references: [name], onDelete: Cascade)
+  topicName String
   comments  Comment[]
   postvotes PostVote[]
 
   @@index(createdAt)
   @@index(rating)
   @@index(authorId)
-  @@index(topicId)
+  @@index(topicName)
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  text      String   @db.VarChar(1024)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String
   createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String   @db.ObjectId
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    String
-  rating    Int      @default(0)
+  postId    String   @db.ObjectId
+  rating    Int      @default(0) @db.Int
 
-  replyToId String?
+  replyToId String?   @db.ObjectId
   replyTo   Comment?  @relation("ReplyTo", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies   Comment[] @relation("ReplyTo")
 
   commentVotes CommentVote[]
 
+  @@index(createdAt)
   @@index(rating)
   @@index(postId)
   @@index(replyToId)
 }
 
 model PostVote {
-  user   User     @relation(fields: [userId], references: [id])
-  userId String
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String   @db.ObjectId
   post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId String
+  postId String   @db.ObjectId
   type   VoteType
 
-  @@id([userId, postId])
+  @@unique([userId, postId])
 }
 
 model CommentVote {
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  commentId String
+  commentId String   @db.ObjectId
   type      VoteType
 
-  @@id([userId, commentId])
+  @@unique([userId, commentId])
 }

@@ -101,7 +101,9 @@
 
 @layer components {
   .prose {
+    @apply prose-slate;
     @apply prose-headings:my-2;
+    @apply prose-h1:text-[1.8em] prose-h1:leading-tight;
     @apply prose-p:my-1;
     @apply prose-figure:my-2 prose-figcaption:mt-1 prose-figcaption:text-center;
     @apply prose-ul:my-2;

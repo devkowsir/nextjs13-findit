@@ -1,7 +1,7 @@
 import Logo from "@/components/Logo";
 import { getAuthSession } from "@/lib/auth";
 import Link from "next/link";
-import SignIn from "../dialogs/SignIn";
+import SignInOrUp from "../dialogs/SignInOrUp";
 import SearchTopicOrUser from "./SearchTopicOrUser";
 import UserAccountNav from "./UserAccountNav";
 
@@ -18,7 +18,7 @@ const Navbar = async () => {
         {session && session?.user ? (
           <UserAccountNav user={session.user} />
         ) : (
-          <SignIn />
+          <SignInOrUp />
         )}
       </div>
     </nav>

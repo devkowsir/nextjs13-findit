@@ -13,6 +13,7 @@ const Editor = ({
 }) => {
   const initializeEditor = useCallback(async () => {
     const EditorJS = (await import("@editorjs/editorjs")).default;
+    // @ts-ignore
     const Header = (await import("@editorjs/header")).default;
     const Table = (await import("@editorjs/table"!)).default;
     const List = (await import("@editorjs/list"!)).default;
@@ -33,7 +34,10 @@ const Editor = ({
         },
         data: data ?? {},
         tools: {
-          header: Header,
+          header: {
+            class: Header,
+            config: { levels: [2, 3, 4, 5, 6], defaultLevel: 2 },
+          },
           linkTool: {
             class: LinkTool,
             config: {
