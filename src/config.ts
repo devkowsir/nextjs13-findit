@@ -1,5 +1,7 @@
 export const NAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
 export const USERNAME_REGEX = /[a-zA-Z][a-z0-9A-Z-_]*[a-zA-Z0-9]$/;
+export const VALID_URL_CHAR_REGEX =
+  /[^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\-._~:/?#\[\]@!$&'()*+,;=]/g;
 export const INFINITE_SCROLLING_PAGINATION_RESULTS = 5;
 
 export const numberFormatter = new Intl.NumberFormat("en-US", {

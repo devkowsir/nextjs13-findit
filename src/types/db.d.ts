@@ -17,7 +17,7 @@ export interface Content {
 }
 
 // prettier-ignore
-type _Post = Pick<Post, "id" | "title"| "createdAt" | "rating"> & {
+type _Post = Pick<Post, "id" | "title" | "slug" | "createdAt" | "rating"> & {
   content: Content
 };
 // prettier-ignore

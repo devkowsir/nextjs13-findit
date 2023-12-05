@@ -9,8 +9,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ForwardedRef, forwardRef } from "react";
 import PostMetadata from "../post/PostMetadata";
-import { SkeletonText } from "../Skeleton";
-
 interface PostProps {
   post: ExtendedPost;
 }
@@ -28,7 +26,7 @@ function Post({ post }: PostProps, ref?: ForwardedRef<HTMLLIElement | null>) {
       />
       <article className="prose relative max-h-96 overflow-hidden">
         <Link
-          href={`/t/${post.topicName}/post/${post.id}/${post.title}`}
+          href={`/t/${post.topicName}/post/${post.id}/${post.slug}`}
           className="no-underline"
         >
           <h1>{post.title}</h1>
@@ -44,7 +42,7 @@ function Post({ post }: PostProps, ref?: ForwardedRef<HTMLLIElement | null>) {
           mutationUrl="/api/post-vote"
         />
         <Link
-          href={`/t/${post.topicName}/post/${post.id}/${post.title}#comments`}
+          href={`/t/${post.topicName}/post/${post.id}/${post.slug}#comments`}
           className="flex cursor-pointer items-center rounded-md bg-slate-50 hover:bg-accent"
         >
           <MessagesSquare
