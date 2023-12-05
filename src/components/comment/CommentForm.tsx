@@ -40,10 +40,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
 
       if (replyToId) payload.replyToId = replyToId;
 
-      const { data } = await axios.post(
-        "http://localhost:3000/api/comment",
-        payload,
-      );
+      const { data } = await axios.post("/api/comment", payload);
       return data as Pick<
         ExtendedComment,
         "id" | "author" | "createdAt" | "text" | "replyToId"
