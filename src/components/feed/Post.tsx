@@ -44,7 +44,7 @@ function Post({ post }: PostProps, ref?: ForwardedRef<HTMLLIElement | null>) {
           mutationUrl="/api/post-vote"
         />
         <Link
-          href={`/t/${post.topicName}/post/${post.id}#comments`}
+          href={`/t/${post.topicName}/post/${post.id}/${post.title}#comments`}
           className="flex cursor-pointer items-center rounded-md bg-slate-50 hover:bg-accent"
         >
           <MessagesSquare
