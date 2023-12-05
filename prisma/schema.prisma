@@ -100,6 +100,7 @@ model Subscription {
 
 model Post {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  slug      String
   title     String
   content   Json?
   createdAt DateTime   @default(now())

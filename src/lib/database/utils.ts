@@ -106,6 +106,7 @@ export async function getPostWithTopComments(
 
   const post = {
     id: data.id,
+    slug: data.slug,
     topicName: data.topicName,
     createdAt: data.createdAt,
     author: data.author,
@@ -166,6 +167,7 @@ export async function getPost(
   return post
     ? {
         id: post.id,
+        slug: post.slug,
         author: post.author,
         topicName: post.topicName,
         title: post.title,
@@ -225,6 +227,7 @@ export async function getFeedPosts({
     select: {
       id: true,
       createdAt: true,
+      slug: true,
       topicName: true,
       title: true,
       content: true,
@@ -252,6 +255,7 @@ export async function getFeedPosts({
   return dbPosts.map(
     (post, index): ExtendedPost => ({
       id: post.id,
+      slug: post.slug,
       author: post.author,
       topicName: post.topicName,
       title: post.title,
@@ -378,6 +382,7 @@ export async function getUserProfile(username: string, currUserId?: string) {
         take: INFINITE_SCROLLING_PAGINATION_RESULTS,
         select: {
           id: true,
+          slug: true,
           createdAt: true,
           title: true,
           content: true,
@@ -410,6 +415,7 @@ export async function getUserProfile(username: string, currUserId?: string) {
     posts: data.posts.map(
       (post, index): ExtendedPost => ({
         id: post.id,
+        slug: post.slug,
         topicName: post.topicName,
         createdAt: post.createdAt,
         author,

@@ -1,3 +1,4 @@
+import { VALID_URL_CHAR_REGEX } from "@/config";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/database/prisma";
 import { getPost } from "@/lib/database/utils";
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     await prisma.post.create({
       data: {
         title,
+        slug: title.replaceAll(VALID_URL_CHAR_REGEX, "-"),
         authorId: session.user?.id,
         content,
         topicName,
