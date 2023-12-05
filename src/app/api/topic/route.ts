@@ -6,17 +6,28 @@ import { URL } from "url";
 import { z } from "zod";
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const topicName = url.searchParams.get("topicName");
-  if (topicName === null) return new Response("Wrong data", { status: 409 });
-  const topicSummary = await getTopicSummary(topicName);
-  return new Response(JSON.stringify(topicSummary));
+  console.time();
+  try {
+    const url = new URL(req.url);
+    const topicName = url.searchParams.get("topicName");
+    if (topicName === null) return new Response("Wrong data", { status: 409 });
+    const topicSummary = await getTopicSummary(topicName);
+    console.timeEnd();
+    return new Response(JSON.stringify(topicSummary));
+  } catch (error) {
+    console.timeEnd();
+    return new Response("Something went wrong", { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
+  console.time();
   try {
     const session = await getAuthSession();
-    if (!session?.user) return new Response("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const body = await req.json();
     const { name, description } = TopicCreationRequestValidator.parse(body);
@@ -24,8 +35,10 @@ export async function POST(req: Request) {
     const topicExists = await prisma.topic.findFirst({
       where: { name: { equals: name, mode: "insensitive" } },
     });
-    if (topicExists)
+    if (topicExists) {
+      console.timeEnd();
       return new Response("Topic already exists", { status: 409 });
+    }
 
     const topic = await prisma.topic.create({
       data: {
@@ -41,13 +54,15 @@ export async function POST(req: Request) {
         userId: session.user.id,
       },
     });
-
+    console.timeEnd();
     return new Response(topic.name);
   } catch (error) {
     console.error(error);
-    if (error instanceof z.ZodError)
+    if (error instanceof z.ZodError) {
+      console.timeEnd();
       return new Response(error.message, { status: 422 });
-
+    }
+    console.timeEnd();
     return new Response("Could not create post", { status: 500 });
   }
 }

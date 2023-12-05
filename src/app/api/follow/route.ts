@@ -4,9 +4,13 @@ import { FollowToggleRequestValidator } from "@/lib/validators/user";
 import { z } from "zod";
 
 export async function POST(req: Request) {
+  console.time();
   try {
     const session = await getAuthSession();
-    if (!session?.user) return new Response("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const body = await req.json();
     const { username } = FollowToggleRequestValidator.parse(body);
@@ -17,8 +21,10 @@ export async function POST(req: Request) {
       },
       select: { id: true },
     });
-    if (user === null)
+    if (user === null) {
+      console.timeEnd();
       return new Response("User does not exist", { status: 422 });
+    }
 
     const filter = {
       followedById: session.user.id,
@@ -39,6 +45,7 @@ export async function POST(req: Request) {
         },
         select: { follwingToId: true },
       });
+      console.timeEnd();
       return new Response(`Successfully removed following ${username}`);
     }
 
@@ -46,12 +53,15 @@ export async function POST(req: Request) {
       data: filter,
       select: { followedById: true },
     });
-
+    console.timeEnd();
     return new Response(`Successfully started following to ${username}`);
   } catch (error) {
     console.error(error);
-    if (error instanceof z.ZodError)
+    if (error instanceof z.ZodError) {
+      console.timeEnd();
       return new Response(error.message, { status: 422 });
+    }
+    console.timeEnd();
     return new Response("Something went wrong", { status: 500 });
   }
 }

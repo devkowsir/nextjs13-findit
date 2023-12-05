@@ -5,7 +5,10 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     let href = url.searchParams.get("url");
 
-    if (!href) return new Response("Invalid href", { status: 400 });
+    if (!href) {
+      console.timeEnd();
+      return new Response("Invalid href", { status: 400 });
+    }
     if (!href.match(/^https?:\/\//)) href = `http://${href}`;
 
     const { data: page } = await axios.get(href);
@@ -20,7 +23,7 @@ export async function GET(req: Request) {
 
     const imageMatch = page.match(/<meta property="og:image" content="(.*?)"/);
     const imageUrl = imageMatch ? imageMatch[1] : "";
-
+    console.timeEnd();
     return new Response(
       JSON.stringify({
         success: 1,
@@ -34,6 +37,7 @@ export async function GET(req: Request) {
     );
   } catch (err) {
     console.error(err);
+    console.timeEnd();
     return new Response(JSON.stringify({ success: 0 }));
   }
 }

@@ -7,15 +7,22 @@ interface ReqBody {
 }
 
 export async function POST(req: Request) {
-  const { public_id, version, signature }: ReqBody = await req.json();
+  console.timeEnd();
+  try {
+    const { public_id, version, signature }: ReqBody = await req.json();
 
-  const expectedSignature = cloudinary.utils.api_sign_request(
-    { public_id, version },
-    cloudinaryConfig.api_secret!,
-  );
+    const expectedSignature = cloudinary.utils.api_sign_request(
+      { public_id, version },
+      cloudinaryConfig.api_secret!,
+    );
 
-  if (expectedSignature === signature) {
-    // safe to write to database
-    // write to database
+    if (expectedSignature === signature) {
+      // safe to write to database
+      // write to database
+    }
+    console.timeEnd();
+  } catch (error) {
+    console.timeEnd();
+    return new Response("Something went wrong", { status: 500 });
   }
 }

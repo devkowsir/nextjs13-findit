@@ -6,9 +6,13 @@ import {
 } from "@/lib/validators/comment";
 
 export async function POST(req: Request) {
+  console.time();
   try {
     const session = await getAuthSession();
-    if (!session) return new Response("Unauthorized", { status: 401 });
+    if (!session) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const body = await req.json();
     const commentData = CommentCreationValidator.parse(body);
@@ -19,18 +23,23 @@ export async function POST(req: Request) {
         author: { select: { id: true, username: true, image: true } },
       },
     });
-
+    console.timeEnd();
     return new Response(JSON.stringify(res));
   } catch (err) {
     console.error(err);
+    console.timeEnd();
     return new Response("Something went wrong", { status: 500 });
   }
 }
 
 export async function PATCH(req: Request) {
+  console.time();
   try {
     const session = await getAuthSession();
-    if (!session) return new Response("Unauthorized", { status: 401 });
+    if (!session) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const body = await req.json();
     const { commentId, text } = CommentUpdateValidator.parse(body);
@@ -40,35 +49,50 @@ export async function PATCH(req: Request) {
       data: { text },
       select: { text: true },
     });
-
+    console.timeEnd();
     return new Response(res.text);
   } catch (err) {
     console.error(err);
+    console.timeEnd();
     return new Response("Something went wrong", { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   try {
+    console.time();
     const session = await getAuthSession();
-    if (!session) return new Response("Unauthorized", { status: 401 });
+    if (!session) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const url = new URL(req.url);
     const commentId = url.searchParams.get("commentId");
-    if (!commentId) return new Response("Bad Request", { status: 400 });
+    if (!commentId) {
+      console.timeEnd();
+      return new Response("Bad Request", { status: 400 });
+    }
 
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
     });
 
-    if (!comment) return new Response("Resource Not Found.", { status: 404 });
-    if (comment.authorId !== session.user.id)
+    if (!comment) {
+      console.timeEnd();
+      return new Response("Resource Not Found.", { status: 404 });
+    }
+    if (comment.authorId !== session.user.id) {
+      console.timeEnd();
       return new Response("Unauthorized", { status: 401 });
+    }
 
     await prisma.comment.delete({ where: { id: commentId } });
+    console.timeEnd();
     return new Response("OK");
   } catch (err) {
     console.error(err);
+    console.timeEnd();
     return new Response("Something went wrong", { status: 500 });
   }
 }

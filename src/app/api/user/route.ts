@@ -5,19 +5,36 @@ import { ProfileChangeRequestValidator } from "@/lib/validators/user";
 import { ZodError } from "zod";
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const userId = url.searchParams.get("userId");
-  if (!userId) return new Response("Invalid request", { status: 409 });
+  try {
+    console.time();
+    const url = new URL(req.url);
+    const userId = url.searchParams.get("userId");
+    if (!userId) {
+      console.timeEnd();
+      return new Response("Invalid request", { status: 409 });
+    }
 
-  const userSummary = await getUserSummary(userId);
-  if (!userSummary) return new Response("Not Found", { status: 404 });
-  return new Response(JSON.stringify(userSummary));
+    const userSummary = await getUserSummary(userId);
+    if (!userSummary) {
+      console.timeEnd();
+      return new Response("Not Found", { status: 404 });
+    }
+    console.timeEnd();
+    return new Response(JSON.stringify(userSummary));
+  } catch (error) {
+    console.timeEnd();
+    return new Response("Something Went Wrong", { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
   try {
+    console.time();
     const session = await getAuthSession();
-    if (!session?.user.id) return new Response("Unauthorized", { status: 401 });
+    if (!session?.user.id) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
     const body = await req.json();
 
     const { bio, username } = ProfileChangeRequestValidator.parse(body);
@@ -33,10 +50,12 @@ export async function POST(req: Request) {
     const existingUser = data.find(
       (user) => user.username === username && user.id !== session.user.id,
     );
-    if (existingUser)
+    if (existingUser) {
+      console.timeEnd();
       return new Response("User with this given username already exists", {
         status: 409,
       });
+    }
 
     const oldUserData = data.find((user) => user.id === session.user.id);
 
@@ -46,16 +65,19 @@ export async function POST(req: Request) {
     if (
       (bio === oldUserData.bio && username === oldUserData.username) ||
       (!bio && !username)
-    )
+    ) {
+      console.timeEnd();
       return new Response("Invalid request.", { status: 400 });
-    else if (
+    } else if (
       username !== oldUserData.username &&
       oldUserData.usernameHasBeenChanged
-    )
+    ) {
+      console.timeEnd();
       return new Response(
         "You have already changed your username once. Please contact with the developers for additional help",
         { status: 403 },
       );
+    }
 
     await prisma.user.update({
       where: { id: session.user.id },
@@ -69,13 +91,15 @@ export async function POST(req: Request) {
           : false,
       },
     });
-
+    console.timeEnd();
     return new Response("Ok");
   } catch (error) {
     if (error instanceof ZodError) {
+      console.timeEnd();
       return new Response(error.message);
     } else {
-      throw new Error("Something went wrong while updating user informations");
+      console.timeEnd();
+      return new Response("Something went wrong", { status: 500 });
     }
   }
 }

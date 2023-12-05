@@ -6,11 +6,15 @@ import { ZodError } from "zod";
 
 export async function POST(req: Request) {
   try {
+    console.time();
     let userVote: VoteType | null;
     let post: { rating: number };
     const session = await getAuthSession();
     const userId = session?.user.id;
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    if (!userId) {
+      console.timeEnd();
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const body = await req.json();
     const { type, id: postId } = VoteValidator.parse(body);
@@ -61,12 +65,15 @@ export async function POST(req: Request) {
       ]);
       userVote = type;
     }
+    console.timeEnd();
     return new Response(JSON.stringify({ userVote, rating: post.rating }));
   } catch (err) {
     console.error(err);
-    if (err instanceof ZodError)
+    if (err instanceof ZodError) {
+      console.timeEnd();
       return new Response(err.message, { status: 422 });
-
+    }
+    console.timeEnd();
     return new Response("Could not create post", { status: 500 });
   }
 }
