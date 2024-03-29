@@ -7,7 +7,7 @@ interface ReqBody {
 }
 
 export async function POST(req: Request) {
-  console.timeEnd();
+  console.time();
   try {
     const { public_id, version, signature }: ReqBody = await req.json();
 
