@@ -56,7 +56,7 @@ const PostMetadata: React.FC<PostMetadataProps> = ({
     setData: setUserSummary,
   });
 
-  const topicMeta = (
+  const topicMeta = topicName ? (
     <>
       <div className="rounded bg-slate-50 px-2 py-1" ref={topicRef}>
         <Link
@@ -108,7 +108,7 @@ const PostMetadata: React.FC<PostMetadataProps> = ({
       </div>
       <Seperator />
     </>
-  );
+  ) : null;
 
   const authorMeta = (
     <div ref={userRef} className="rounded bg-slate-50 px-2 py-1">
@@ -158,7 +158,7 @@ const PostMetadata: React.FC<PostMetadataProps> = ({
 
   return (
     <div className="relative flex items-center gap-2 text-xs text-slate-700">
-      {topicName !== null && topicMeta}
+      {topicMeta}
       {authorMeta}
       <Seperator />
       <span className="rounded-sm bg-slate-50 px-2 py-1">
