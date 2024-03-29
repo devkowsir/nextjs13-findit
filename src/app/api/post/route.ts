@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         title: title,
         authorId: session.user?.id,
         content,
-        topicId: topicName,
+        topicName,
       },
     });
 
