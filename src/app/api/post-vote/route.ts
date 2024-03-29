@@ -6,6 +6,7 @@ import { ZodError } from "zod";
 
 export async function POST(req: Request) {
   try {
+    console.log(Date.now());
     let userVote: VoteType | null;
     let post: { rating: number };
     const session = await getAuthSession();
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
       ]);
       userVote = type;
     }
+    console.log(Date.now());
     return new Response(JSON.stringify({ userVote, votesAmount: post.rating }));
   } catch (err) {
     console.error(err);
