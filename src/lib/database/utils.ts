@@ -94,7 +94,7 @@ export async function getPost(
     ? {
         id: post.id,
         author: post.author,
-        topicName: post.topicId,
+        topicName: post.topicName,
         title: post.title,
         content: post.content,
         createdAt: post.createdAt,
@@ -137,7 +137,7 @@ export async function getFeedPosts({
 }: GetPostRequirements): Promise<ExtendedPost[]> {
   const ONE_DAY = 24 * 60 * 60 * 1000;
   let filter: any = {};
-  if (subscriptions.length) filter.topicId = { in: subscriptions };
+  if (subscriptions.length) filter.topicName = { in: subscriptions };
   if (authorId) filter.authorId = authorId;
   if (sortMode === "hot") {
     filter.createdAt = { gte: new Date(Date.now() - ONE_DAY) };
@@ -153,7 +153,7 @@ export async function getFeedPosts({
     select: {
       id: true,
       createdAt: true,
-      topicId: true,
+      topicName: true,
       title: true,
       content: true,
       rating: true,
@@ -181,7 +181,7 @@ export async function getFeedPosts({
     (post, index): ExtendedPost => ({
       id: post.id,
       author: post.author,
-      topicName: post.topicId,
+      topicName: post.topicName,
       title: post.title,
       content: post.content,
       createdAt: post.createdAt,
@@ -305,7 +305,7 @@ export async function getUserProfile(authorName: string, userId?: string) {
           title: true,
           content: true,
           rating: true,
-          topicId: true,
+          topicName: true,
           _count: { select: { comments: { where: { replyToId: null } } } },
         },
       },
@@ -333,7 +333,7 @@ export async function getUserProfile(authorName: string, userId?: string) {
     posts: data.posts.map(
       (post, index): ExtendedPost => ({
         id: post.id,
-        topicName: post.topicId,
+        topicName: post.topicName,
         createdAt: post.createdAt,
         author,
         title: post.title,
