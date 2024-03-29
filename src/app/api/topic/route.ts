@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       data: {
         name,
         creatorId: session.user.id,
-        description: description ? description : null,
+        description,
       },
     });
 
